@@ -70,6 +70,87 @@ You can also run the application using uvicorn:
 ```bash
 uvicorn app:app --host 0.0.0.0 --port 8000
 ```
+## Docker
+
+This application is containerized and available as a Docker image for easy deployment.
+
+### Prerequisites
+
+- Docker 25+ installed and running
+- Docker Hub account (for pulling/pushing images)
+
+### Building the Image
+
+Build the Docker image locally:
+
+```bash
+docker build -t devops-info-service:latest .
+```
+
+Tag for your Docker Hub repository:
+
+```bash
+docker tag devops-info-service:latest <your-dockerhub-username>/devops-info-service:latest
+```
+
+### Running the Container
+
+Run the container with default settings:
+
+```bash
+docker run -d -p 8000:8000 --name devops-service devops-info-service:latest
+```
+
+Run with custom environment variables:
+
+```bash
+docker run -d -p 8080:8080 \
+  -e PORT=8080 \
+  -e DEBUG=true \
+  --name devops-service \
+  devops-info-service:latest
+```
+
+### Pulling from Docker Hub
+
+Pull and run the pre-built image:
+
+```bash
+docker pull netimaaaa/devops-info-service:latest
+docker run -d -p 8000:8000 --name devops-service netimaaaa/devops-info-service:latest
+```
+
+### Container Management
+
+```bash
+# View running containers
+docker ps
+
+# View container logs
+docker logs devops-service
+
+# Stop the container
+docker stop devops-service
+
+# Remove the container
+docker rm devops-service
+
+# View image details
+docker images devops-info-service
+```
+
+### Testing the Containerized Application
+
+Once the container is running, test the endpoints:
+
+```bash
+# Test main endpoint
+curl http://localhost:8000/
+
+# Test health check
+curl http://localhost:8000/health
+```
+
 
 ## API Endpoints
 
