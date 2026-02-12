@@ -1,5 +1,8 @@
 # DevOps Info Service
 
+[![Python CI/CD Pipeline](https://github.com/netimaaa/DevOps-Core-Course/actions/workflows/python-ci.yml/badge.svg)](https://github.com/netimaaa/DevOps-Core-Course/actions/workflows/python-ci.yml)
+[![codecov](https://codecov.io/gh/netimaaa/DevOps-Core-Course/branch/master/graph/badge.svg)](https://codecov.io/gh/netimaaa/DevOps-Core-Course)
+
 A production-ready Python web service that provides comprehensive system information and health status monitoring. Built with FastAPI for the DevOps Core Course.
 
 ## Overview
@@ -252,6 +255,48 @@ export PORT=8080
 export DEBUG=true
 python app.py
 ```
+
+## Testing
+
+This project includes comprehensive unit tests using pytest.
+
+### Running Tests
+
+Run all tests:
+```bash
+cd app_python
+pytest tests/ -v
+```
+
+Run tests with coverage:
+```bash
+pytest tests/ --cov=. --cov-report=term --cov-report=html
+```
+
+View coverage report:
+```bash
+open htmlcov/index.html  # macOS
+xdg-open htmlcov/index.html  # Linux
+```
+
+### Test Framework
+
+We use **pytest** for testing because:
+- Simple and intuitive syntax
+- Powerful fixtures for test setup
+- Excellent plugin ecosystem (pytest-cov for coverage)
+- Better assertion introspection than unittest
+- Active community and modern features
+
+### What's Tested
+
+- ✅ All API endpoints (GET /, GET /health)
+- ✅ JSON response structure and data types
+- ✅ HTTP status codes (200, 404, 405)
+- ✅ Error handling and edge cases
+- ✅ Helper functions (system info, uptime)
+- ✅ Request information capture
+- ✅ Multiple request scenarios
 
 ## Development
 
