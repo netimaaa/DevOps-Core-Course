@@ -1,0 +1,6 @@
+---
+# Default variables for app_deploy role
+
+app_port: 5000
+app_restart_policy: unless-stopped
+app_environment: {}

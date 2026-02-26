@@ -1,1 +1,27 @@
-test
+# Python - app_python/
+app_python/__pycache__/
+app_python/*.py[cod]
+app_python/venv/
+app_python/env/
+app_python/*.log
+
+# Go - app_go/
+app_go/devops-info-service
+app_go/devops-info-service-*
+app_go/*.exe
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+
+*.retry
+.vault_pass
+ansible/inventory/*.pyc
+__pycache__/
