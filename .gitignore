@@ -20,3 +20,8 @@ Thumbs.db
 
 # Env
 .env
+
+*.retry
+.vault_pass
+ansible/inventory/*.pyc
+__pycache__/
