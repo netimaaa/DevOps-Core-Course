@@ -40,7 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     # Only run on push to main/master, not on PRs
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,7 +48,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Install Ansible and dependencies
         run: |
           pip install ansible
@@ -61,7 +59,6 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
-
       - name: Create Ansible vault password file
         run: |
           echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > /tmp/vault_pass
