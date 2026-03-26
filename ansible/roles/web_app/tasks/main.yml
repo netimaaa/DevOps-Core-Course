@@ -22,6 +22,13 @@
         dest: "{{ compose_project_dir }}/docker-compose.yml"
         mode: '0644'
 
+    - name: Login to Docker Hub
+      community.docker.docker_login:
+        username: "{{ dockerhub_username }}"
+        password: "{{ dockerhub_password }}"
+      no_log: true
+      when: dockerhub_username is defined and dockerhub_password is defined
+
     - name: Pull latest Docker images
       community.docker.docker_compose_v2:
         project_src: "{{ compose_project_dir }}"

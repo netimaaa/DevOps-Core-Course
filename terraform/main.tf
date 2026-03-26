@@ -9,8 +9,10 @@ terraform {
 }
 
 provider "yandex" {
-  zone      = var.zone
-  folder_id = var.folder_id
+  service_account_key_file = var.service_account_key_file
+  cloud_id                 = var.cloud_id
+  folder_id                = var.folder_id
+  zone                     = var.zone
 }
 
 # VPC Network
@@ -77,7 +79,7 @@ resource "yandex_compute_instance" "devops_vm" {
   resources {
     cores         = 2
     memory        = 1
-    core_fraction = 20  # 20% CPU for free tier
+    core_fraction = 20 # 20% CPU for free tier
   }
 
   boot_disk {
