@@ -3,6 +3,7 @@ app_python/__pycache__/
 app_python/*.py[cod]
 app_python/venv/
 app_python/env/
+app_python/.venv/
 app_python/*.log
 
 # Go - app_go/
@@ -20,3 +21,5 @@ Thumbs.db
 
 # Env
 .env
+
+terraform

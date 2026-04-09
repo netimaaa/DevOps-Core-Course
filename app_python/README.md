@@ -1,5 +1,7 @@
 # DevOps Info Service
 
+[![Python CI](https://github.com/netimaaa/DevOps-Core-Course/actions/workflows/python-ci.yml/badge.svg)](https://github.com/netimaaa/DevOps-Core-Course/actions/workflows/python-ci.yml)
+
 A production-ready Python web service that provides comprehensive system information and health status monitoring. Built with FastAPI for the DevOps Core Course.
 
 ## Overview
@@ -252,6 +254,27 @@ export PORT=8080
 export DEBUG=true
 python app.py
 ```
+
+## Testing
+
+Tests are located in `tests/` and use **pytest** with the FastAPI test client.
+
+### Run tests locally
+
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pytest tests/ -v
+```
+
+### Run with coverage
+
+```bash
+pytest tests/ -v --cov=. --cov-report=term
+```
+
+---
 
 ## Development
 
