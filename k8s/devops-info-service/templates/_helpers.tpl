@@ -41,3 +41,15 @@ Selector labels
 app.kubernetes.io/name: {{ include "devops-info-service.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Common environment variables (DRY principle)
+*/}}
+{{- define "devops-info-service.envVars" -}}
+- name: HOST
+  value: {{ .Values.service.host | default "0.0.0.0" | quote }}
+- name: PORT
+  value: {{ .Values.service.targetPort | toString | quote }}
+- name: DEBUG
+  value: {{ .Values.debug | default "false" | quote }}
+{{- end }}

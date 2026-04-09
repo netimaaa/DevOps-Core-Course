@@ -22,13 +22,11 @@ resources:
     memory: "256Mi"
     cpu: "200m"
 
-env:
-  - name: HOST
-    value: "0.0.0.0"
-  - name: PORT
-    value: "8000"
-  - name: DEBUG
-    value: "false"
+secret:
+  username: "placeholder-user"
+  password: "placeholder-password"
+
+debug: "false"
 
 securityContext:
   runAsNonRoot: true
