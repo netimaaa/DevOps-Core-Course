@@ -2,17 +2,19 @@
 DevOps Info Service
 Main application module using FastAPI
 """
-import os
-import socket
-import platform
 import json
-from datetime import datetime, timezone
-from typing import Dict, List, Any
 import logging
+import os
+import platform
+import socket
+from datetime import datetime, timezone
+from pathlib import Path
+from threading import Lock
+from typing import Any, Dict, List
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 
 
 # --- Prometheus metrics ---
@@ -42,7 +44,7 @@ endpoint_calls_total = Counter(
 
 class JSONFormatter(logging.Formatter):
     """Custom JSON formatter for structured logging."""
-    
+
     def format(self, record):
         log_data = {
             'timestamp': datetime.now(timezone.utc).isoformat(),
@@ -53,7 +55,7 @@ class JSONFormatter(logging.Formatter):
             'function': record.funcName,
             'line': record.lineno
         }
-        
+
         # Add extra fields if present
         if hasattr(record, 'method'):
             log_data['method'] = record.method
@@ -63,11 +65,11 @@ class JSONFormatter(logging.Formatter):
             log_data['status_code'] = record.status_code
         if hasattr(record, 'client_ip'):
             log_data['client_ip'] = record.client_ip
-        
+
         # Add exception info if present
         if record.exc_info:
             log_data['exception'] = self.formatException(record.exc_info)
-        
+
         return json.dumps(log_data)
 
 
@@ -93,8 +95,15 @@ app = FastAPI(
 HOST = os.getenv('HOST', '0.0.0.0')
 PORT = int(os.getenv('PORT', 8000))
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+VISITS_FILE = Path(os.getenv('VISITS_FILE', './data/visits'))
+VISITS_LOCK = Lock()
 
 START_TIME = datetime.now(timezone.utc)
+
+
+def ensure_visits_directory() -> None:
+    """Ensure the visits file directory exists."""
+    VISITS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 def get_system_info() -> Dict[str, Any]:
@@ -137,14 +146,66 @@ def get_endpoints() -> List[Dict[str, str]]:
         {
             'path': '/',
             'method': 'GET',
-            'description': 'Service information'
+            'description': 'Service information and increment visits counter'
         },
         {
             'path': '/health',
             'method': 'GET',
             'description': 'Health check'
+        },
+        {
+            'path': '/visits',
+            'method': 'GET',
+            'description': 'Current persisted visits counter'
         }
     ]
+
+
+def read_visits_count() -> int:
+    """Read visits counter from file, defaulting to zero."""
+    try:
+        return int(VISITS_FILE.read_text(encoding='utf-8').strip() or '0')
+    except FileNotFoundError:
+        return 0
+    except ValueError:
+        logger.warning(
+            'Visits file contains invalid value, resetting counter to zero',
+            extra={'path': str(VISITS_FILE)}
+        )
+        return 0
+
+
+def write_visits_count(count: int) -> None:
+    """Persist visits counter using atomic replace."""
+    ensure_visits_directory()
+    temp_file = VISITS_FILE.with_suffix('.tmp')
+    temp_file.write_text(str(count), encoding='utf-8')
+    temp_file.replace(VISITS_FILE)
+
+
+def increment_visits_count() -> int:
+    """Increment visits counter in a thread-safe way and return new value."""
+    with VISITS_LOCK:
+        current_count = read_visits_count()
+        new_count = current_count + 1
+        write_visits_count(new_count)
+        return new_count
+
+
+@app.on_event('startup')
+def initialize_visits_file() -> None:
+    """Ensure visits file exists and is readable on startup."""
+    with VISITS_LOCK:
+        current_count = read_visits_count()
+        write_visits_count(current_count)
+
+    logger.info(
+        'Visits counter initialized',
+        extra={
+            'path': str(VISITS_FILE),
+            'visits_count': current_count
+        }
+    )
 
 
 @app.middleware("http")
@@ -198,7 +259,8 @@ async def index(request: Request) -> Dict[str, Any]:
     """Main endpoint - service and system information."""
     endpoint_calls_total.labels(endpoint='/').inc()
     uptime = get_uptime()
-    
+    visits_count = increment_visits_count()
+
     return {
         'service': {
             'name': 'devops-info-service',
@@ -214,7 +276,24 @@ async def index(request: Request) -> Dict[str, Any]:
             'timezone': 'UTC'
         },
         'request': get_request_info(request),
+        'visits': {
+            'count': visits_count,
+            'file': str(VISITS_FILE)
+        },
         'endpoints': get_endpoints()
+    }
+
+
+@app.get("/visits")
+def visits() -> Dict[str, Any]:
+    """Return current persisted visits counter."""
+    endpoint_calls_total.labels(endpoint='/visits').inc()
+    with VISITS_LOCK:
+        visits_count = read_visits_count()
+
+    return {
+        'visits': visits_count,
+        'file': str(VISITS_FILE)
     }
 
 
@@ -264,16 +343,17 @@ async def internal_error_handler(request: Request, exc: Exception) -> JSONRespon
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     logger.info(
-        f"Starting DevOps Info Service",
+        'Starting DevOps Info Service',
         extra={
             'host': HOST,
             'port': PORT,
-            'debug': DEBUG
+            'debug': DEBUG,
+            'visits_file': str(VISITS_FILE)
         }
     )
-    
+
     uvicorn.run(
         app,
         host=HOST,

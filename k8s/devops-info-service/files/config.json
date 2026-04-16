@@ -1,0 +1,9 @@
+{
+  "applicationName": "devops-info-service",
+  "environment": "dev",
+  "features": {
+    "visitsCounter": true,
+    "prometheusMetrics": true,
+    "structuredLogging": true
+  }
+}

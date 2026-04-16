@@ -14,6 +14,17 @@ resources:
 service:
   type: LoadBalancer
 
+appConfig:
+  environment: prod
+  logLevel: info
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""
+  mountPath: /data
+  visitsFile: /data/visits
+
 livenessProbe:
   httpGet:
     path: /health

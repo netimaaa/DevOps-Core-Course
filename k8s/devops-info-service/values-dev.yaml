@@ -15,6 +15,17 @@ service:
   type: NodePort
   nodePort: 30080
 
+appConfig:
+  environment: dev
+  logLevel: debug
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""
+  mountPath: /data
+  visitsFile: /data/visits
+
 livenessProbe:
   httpGet:
     path: /health

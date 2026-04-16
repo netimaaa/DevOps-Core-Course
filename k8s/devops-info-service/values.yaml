@@ -56,3 +56,19 @@ readinessProbe:
   periodSeconds: 5
   timeoutSeconds: 3
   failureThreshold: 3
+
+appConfig:
+  name: devops-info-service
+  environment: dev
+  logLevel: info
+  features:
+    visitsCounter: "true"
+    prometheusMetrics: "true"
+    structuredLogging: "true"
+
+persistence:
+  enabled: true
+  size: 100Mi
+  storageClass: ""
+  mountPath: /data
+  visitsFile: /data/visits

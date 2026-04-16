@@ -3,7 +3,7 @@
 [![Python CI/CD Pipeline](https://github.com/netimaaa/DevOps-Core-Course/actions/workflows/python-ci.yml/badge.svg)](https://github.com/netimaaa/DevOps-Core-Course/actions/workflows/python-ci.yml)
 [![codecov](https://codecov.io/gh/netimaaa/DevOps-Core-Course/branch/master/graph/badge.svg)](https://codecov.io/gh/netimaaa/DevOps-Core-Course)
 
-A production-ready Python web service that provides comprehensive system information and health status monitoring. Built with FastAPI for the DevOps Core Course.
+A production-ready Python web service that provides comprehensive system information, health status monitoring, and a persisted visits counter. Built with FastAPI for the DevOps Core Course.
 
 ## Overview
 
@@ -13,6 +13,7 @@ This service reports detailed information about itself and its runtime environme
 - Runtime statistics (uptime, current time, timezone)
 - Request details (client IP, user agent, HTTP method)
 - Available API endpoints
+- Persisted visits counter stored in a file
 
 ## Prerequisites
 
@@ -51,6 +52,8 @@ python app.py
 
 The service will be available at `http://localhost:8000`
 
+By default, the visits counter is stored in `./data/visits`.
+
 ### Custom Configuration
 
 Use environment variables to customize the service:
@@ -64,6 +67,9 @@ HOST=127.0.0.1 PORT=3000 python app.py
 
 # Enable debug mode
 DEBUG=true python app.py
+
+# Custom visits file location
+VISITS_FILE=/tmp/devops-visits python app.py
 ```
 
 ### Using Uvicorn Directly
@@ -73,6 +79,7 @@ You can also run the application using uvicorn:
 ```bash
 uvicorn app:app --host 0.0.0.0 --port 8000
 ```
+
 ## Docker
 
 This application is containerized and available as a Docker image for easy deployment.
@@ -80,6 +87,7 @@ This application is containerized and available as a Docker image for easy deplo
 ### Prerequisites
 
 - Docker 25+ installed and running
+- Docker Compose plugin installed
 - Docker Hub account (for pulling/pushing images)
 
 ### Building the Image
@@ -110,8 +118,42 @@ Run with custom environment variables:
 docker run -d -p 8080:8080 \
   -e PORT=8080 \
   -e DEBUG=true \
+  -e VISITS_FILE=/data/visits \
+  -v $(pwd)/data:/data \
   --name devops-service \
   devops-info-service:latest
+```
+
+### Local Persistence Test with Docker Compose
+
+A local [`docker-compose.yml`](app_python/docker-compose.yml) is included for Lab 12.
+
+Start the service:
+
+```bash
+docker compose up --build -d
+```
+
+Generate visits and inspect the persisted file:
+
+```bash
+curl http://localhost:8000/
+curl http://localhost:8000/
+curl http://localhost:8000/visits
+cat ./data/visits
+```
+
+Restart the container and verify the counter is preserved:
+
+```bash
+docker compose restart
+curl http://localhost:8000/visits
+```
+
+Stop the stack:
+
+```bash
+docker compose down
 ```
 
 ### Pulling from Docker Hub
@@ -150,16 +192,18 @@ Once the container is running, test the endpoints:
 # Test main endpoint
 curl http://localhost:8000/
 
+# Test visits endpoint
+curl http://localhost:8000/visits
+
 # Test health check
 curl http://localhost:8000/health
 ```
-
 
 ## API Endpoints
 
 ### GET /
 
-Returns comprehensive service and system information.
+Returns comprehensive service and system information and increments the persisted visits counter.
 
 **Response Example:**
 ```json
@@ -190,16 +234,25 @@ Returns comprehensive service and system information.
     "method": "GET",
     "path": "/"
   },
+  "visits": {
+    "count": 3,
+    "file": "./data/visits"
+  },
   "endpoints": [
     {
       "path": "/",
       "method": "GET",
-      "description": "Service information"
+      "description": "Service information and increment visits counter"
     },
     {
       "path": "/health",
       "method": "GET",
       "description": "Health check"
+    },
+    {
+      "path": "/visits",
+      "method": "GET",
+      "description": "Current persisted visits counter"
     }
   ]
 }
@@ -207,14 +260,26 @@ Returns comprehensive service and system information.
 
 **Testing:**
 ```bash
-# Using curl
 curl http://localhost:8000/
-
-# Using curl with pretty print
 curl http://localhost:8000/ | jq
-
-# Using HTTPie
 http http://localhost:8000/
+```
+
+### GET /visits
+
+Returns the current persisted visits counter without incrementing it.
+
+**Response Example:**
+```json
+{
+  "visits": 3,
+  "file": "./data/visits"
+}
+```
+
+**Testing:**
+```bash
+curl http://localhost:8000/visits
 ```
 
 ### GET /health
@@ -247,136 +312,42 @@ The application supports the following environment variables:
 | `HOST` | `0.0.0.0` | Host address to bind to |
 | `PORT` | `8000` | Port number to listen on |
 | `DEBUG` | `false` | Enable debug mode and auto-reload |
-
-**Example:**
-```bash
-export HOST=127.0.0.1
-export PORT=8080
-export DEBUG=true
-python app.py
-```
+| `VISITS_FILE` | `./data/visits` | Path to the persisted visits counter file |
 
 ## Testing
 
-This project includes comprehensive unit tests using pytest.
+Run the automated test suite:
 
-### Running Tests
-
-Run all tests:
 ```bash
-cd app_python
-pytest tests/ -v
+pytest
 ```
 
 Run tests with coverage:
+
 ```bash
-pytest tests/ --cov=. --cov-report=term --cov-report=html
+pytest --cov=.
 ```
 
-View coverage report:
-```bash
-open htmlcov/index.html  # macOS
-xdg-open htmlcov/index.html  # Linux
-```
+## Project Structure
 
-### Test Framework
-
-We use **pytest** for testing because:
-- Simple and intuitive syntax
-- Powerful fixtures for test setup
-- Excellent plugin ecosystem (pytest-cov for coverage)
-- Better assertion introspection than unittest
-- Active community and modern features
-
-### What's Tested
-
-- ✅ All API endpoints (GET /, GET /health)
-- ✅ JSON response structure and data types
-- ✅ HTTP status codes (200, 404, 405)
-- ✅ Error handling and edge cases
-- ✅ Helper functions (system info, uptime)
-- ✅ Request information capture
-- ✅ Multiple request scenarios
-
-## Development
-
-### Project Structure
-
-```
+```text
 app_python/
-├── app.py                    # Main application
-├── requirements.txt          # Dependencies
-├── .gitignore               # Git ignore patterns
-├── README.md                # This file
-├── tests/                   # Unit tests (Lab 3)
-│   └── __init__.py
-└── docs/                    # Lab documentation
-    ├── LAB01.md            # Lab submission
-    └── screenshots/        # Proof of work
+├── app.py
+├── Dockerfile
+├── docker-compose.yml
+├── README.md
+├── requirements.txt
+├── data/
+└── tests/
 ```
 
-### Code Quality
+## Notes for Kubernetes
 
-The application follows Python best practices:
-- **PEP 8** style guide compliance
-- **Type hints** for better code clarity
-- **Docstrings** for all functions
-- **Logging** for debugging and monitoring
-- **Error handling** for robustness
-
-### Interactive API Documentation
-
-FastAPI provides automatic interactive API documentation:
-
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-## Troubleshooting
-
-### Port Already in Use
-
-If you see "Address already in use" error:
-```bash
-# Find process using the port
-lsof -i :8000
-
-# Kill the process or use a different port
-PORT=8080 python app.py
-```
-
-### Module Not Found
-
-Ensure virtual environment is activated and dependencies are installed:
-```bash
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-### Permission Denied
-
-On Unix systems, ports below 1024 require root privileges:
-```bash
-# Use a port above 1024
-PORT=8000 python app.py
-
-# Or run with sudo (not recommended)
-sudo python app.py
-```
-
-## Future Enhancements
-
-This service will evolve throughout the DevOps course:
-- **Lab 2**: Docker containerization with multi-stage builds
-- **Lab 3**: Unit tests and CI/CD pipeline
-- **Lab 8**: Prometheus metrics endpoint
-- **Lab 9**: Kubernetes deployment with health probes
-- **Lab 12**: Persistent storage for visit counter
-- **Lab 13**: Multi-environment deployment with GitOps
+For Lab 12, the application is designed to:
+- Read configuration from mounted ConfigMaps and environment variables
+- Store the visits counter on a mounted persistent volume
+- Use `VISITS_FILE=/data/visits` inside the container
 
 ## License
 
-This project is part of the DevOps Core Course.
-
-## Author
-
-Created for Lab 01 - DevOps Info Service: Web Application Development
+This project is created for educational purposes as part of the DevOps Core Course.
