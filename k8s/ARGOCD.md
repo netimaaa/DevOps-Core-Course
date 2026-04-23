@@ -29,23 +29,9 @@ kubectl wait --for=condition=ready pod \
 kubectl get pods -n argocd
 ```
 
-Expected output — all pods Running:
-
-```
-NAME                                                READY   STATUS    RESTARTS
-argocd-application-controller-0                     1/1     Running   0
-argocd-applicationset-controller-xxx                1/1     Running   0
-argocd-dex-server-xxx                               1/1     Running   0
-argocd-notifications-controller-xxx                 1/1     Running   0
-argocd-redis-xxx                                    1/1     Running   0
-argocd-repo-server-xxx                              1/1     Running   0
-argocd-server-xxx                                   1/1     Running   0
-```
-
 **Screenshot — pods running:**
 
-<!-- INSERT SCREENSHOT: kubectl get pods -n argocd showing all Running -->
-`[screenshot: argocd-pods-running.png]`
+![ArgoCD pods running](img1.png)
 
 ### UI Access
 
@@ -64,17 +50,11 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
   -o jsonpath="{.data.password}" | base64 -d
 ```
 
-Login credentials: **Username:** `admin` | **Password:** output of the command above.
-
-**Screenshot — ArgoCD UI login page:**
-
-<!-- INSERT SCREENSHOT: ArgoCD UI at https://localhost:8080 -->
-`[screenshot: argocd-ui-login.png]`
+Login credentials: **Username:** `admin` | **Password:** output of the command above (without the trailing `%`).
 
 **Screenshot — ArgoCD UI dashboard (after login):**
 
-<!-- INSERT SCREENSHOT: ArgoCD dashboard showing applications -->
-`[screenshot: argocd-ui-dashboard.png]`
+![ArgoCD UI dashboard](img2.png)
 
 ### CLI Configuration
 
@@ -101,8 +81,7 @@ argocd app list
 k8s/argocd/
 ├── application.yaml        # Default app (namespace: default, manual sync)
 ├── application-dev.yaml    # Dev environment (auto-sync + selfHeal)
-├── application-prod.yaml   # Prod environment (manual sync)
-└── applicationset.yaml     # Bonus: generates dev+prod from one template
+└── application-prod.yaml   # Prod environment (manual sync)
 ```
 
 ### application.yaml — Default Application
@@ -155,20 +134,17 @@ argocd app get python-app
 
 **Screenshot — Application in ArgoCD UI (Synced state):**
 
-<!-- INSERT SCREENSHOT: python-app application card in ArgoCD UI -->
-`[screenshot: argocd-app-synced.png]`
+![python-app Synced](img4.png)
 
 **Screenshot — Application details view (resources tree):**
 
-<!-- INSERT SCREENSHOT: ArgoCD application detail showing Deployment, Service, etc. -->
-`[screenshot: argocd-app-details.png]`
+![python-app details](img5.png)
 
 ### GitOps Workflow Test
 
-A change was made to `values.yaml` (replica count modified), committed, and pushed:
+A change was made to `values.yaml` (replica count modified from 3 to 2), committed, and pushed:
 
 ```bash
-# Edit values.yaml — change replicaCount: 3 → 2
 git add k8s/devops-info-service/values.yaml
 git commit -m "test: reduce replicas to 2 for GitOps drift test"
 git push origin lab13
@@ -184,8 +160,7 @@ The cluster state was updated to match Git.
 
 **Screenshot — OutOfSync state after Git change:**
 
-<!-- INSERT SCREENSHOT: ArgoCD showing python-app as OutOfSync -->
-`[screenshot: argocd-app-outofsync.png]`
+![python-app OutOfSync](img6.png)
 
 ---
 
@@ -259,25 +234,21 @@ kubectl get pods -n dev
 kubectl get pods -n prod
 ```
 
-**Screenshot — ArgoCD UI showing both python-app-dev and python-app-prod:**
+**Screenshot — ArgoCD UI showing all three applications:**
 
-<!-- INSERT SCREENSHOT: ArgoCD dashboard with both apps visible -->
-`[screenshot: argocd-both-apps.png]`
+![ArgoCD all apps](img7.png)
 
 **Screenshot — `argocd app list` output:**
 
-<!-- INSERT SCREENSHOT: terminal showing argocd app list with dev and prod -->
-`[screenshot: argocd-app-list.png]`
+![argocd app list](img8.png)
 
 **Screenshot — pods in dev namespace:**
 
-<!-- INSERT SCREENSHOT: kubectl get pods -n dev -->
-`[screenshot: kubectl-pods-dev.png]`
+![kubectl get pods -n dev](img9.png)
 
 **Screenshot — pods in prod namespace:**
 
-<!-- INSERT SCREENSHOT: kubectl get pods -n prod -->
-`[screenshot: kubectl-pods-prod.png]`
+![kubectl get pods -n prod](img10.png)
 
 ---
 
@@ -285,49 +256,30 @@ kubectl get pods -n prod
 
 ### 4.1 Manual Scale Test (Dev)
 
-**Before** — Git defines `replicaCount: 1` for dev. Dev pod count:
-
-```bash
-kubectl get pods -n dev
-# NAME                                        READY   STATUS    RESTARTS
-# devops-info-service-xxx-yyy                 1/1     Running   0
-```
+**Before** — Git defines `replicaCount: 1` for dev (1 pod running).
 
 **Action** — Manually scale to 5 replicas:
 
 ```bash
-kubectl scale deployment devops-info-service -n dev --replicas=5
-# deployment.apps/devops-info-service scaled
+kubectl scale deployment python-app-dev-devops-info-service -n dev --replicas=5
 ```
 
-**ArgoCD detects drift** — `argocd app get python-app-dev` shows `OutOfSync`.
+**ArgoCD detects drift** — `python-app-dev` shows `OutOfSync` in the UI.
 
-**Self-heal** — Within ~15 seconds ArgoCD reverts the cluster back to 1 replica (matching Git):
-
-```bash
-kubectl get pods -n dev -w
-# Extra pods enter Terminating state and are removed
-```
-
-**After** — cluster matches Git again, back to 1 pod.
+**Self-heal** — Within ~15 seconds ArgoCD reverts the cluster back to 1 replica (matching Git). Extra pods enter `Terminating` state and are removed.
 
 **Screenshot — ArgoCD detecting drift (OutOfSync) after manual scale:**
 
-<!-- INSERT SCREENSHOT: ArgoCD python-app-dev showing OutOfSync during scale test -->
-`[screenshot: argocd-selfheal-outofsync.png]`
+![python-app-dev OutOfSync during scale test](img11.png)
 
 **Screenshot — ArgoCD after self-heal (Synced, 1 replica):**
 
-<!-- INSERT SCREENSHOT: ArgoCD python-app-dev back to Synced -->
-`[screenshot: argocd-selfheal-synced.png]`
+![python-app-dev back to Synced](img12.png)
 
 ### 4.2 Pod Deletion Test (Dev)
 
 ```bash
-# Delete a running pod
 kubectl delete pod -n dev -l app.kubernetes.io/name=devops-info-service
-
-# Watch Kubernetes recreate it
 kubectl get pods -n dev -w
 ```
 
@@ -335,29 +287,17 @@ A new pod appears within seconds. This is **Kubernetes self-healing** (ReplicaSe
 
 **Screenshot — pod being recreated after deletion:**
 
-<!-- INSERT SCREENSHOT: kubectl get pods -n dev -w showing pod Terminating then new pod Running -->
-`[screenshot: kubectl-pod-recreation.png]`
+![pod recreation](img13.png)
 
 ### 4.3 Configuration Drift Test (Dev)
-
-```bash
-# Manually add a label to the deployment
-kubectl patch deployment devops-info-service -n dev \
-  -p '{"spec":{"template":{"metadata":{"labels":{"manual-label":"test"}}}}}'
-```
-
-ArgoCD detects the configuration drift and shows a diff:
 
 ```bash
 argocd app diff python-app-dev
 ```
 
-With `selfHeal: true`, ArgoCD reverts the manual patch automatically, restoring the deployment to the Git-defined state.
+**Screenshot — `argocd app diff` output:**
 
-**Screenshot — ArgoCD diff view showing configuration drift:**
-
-<!-- INSERT SCREENSHOT: argocd app diff or ArgoCD UI diff view -->
-`[screenshot: argocd-config-drift-diff.png]`
+![argocd app diff](img14.png)
 
 ### 4.4 Sync Behavior Explanation
 
@@ -373,81 +313,3 @@ With `selfHeal: true`, ArgoCD reverts the manual patch automatically, restoring 
 - Polls Git every **3 minutes** by default
 - Webhook from GitHub can trigger immediate sync
 - Manual trigger via UI or `argocd app sync`
-
----
-
-## 5. Bonus — ApplicationSet
-
-### applicationset.yaml
-
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: python-app-set
-  namespace: argocd
-spec:
-  generators:
-    - list:
-        elements:
-          - env: dev
-            namespace: dev
-            valuesFile: values-dev.yaml
-            autoSync: "true"
-          - env: prod
-            namespace: prod
-            valuesFile: values-prod.yaml
-            autoSync: "false"
-  template:
-    metadata:
-      name: 'python-app-{{env}}'
-    spec:
-      project: default
-      source:
-        repoURL: https://github.com/netimaaa/DevOps-Core-Course.git
-        targetRevision: lab13
-        path: k8s/devops-info-service
-        helm:
-          valueFiles:
-            - values.yaml
-            - '{{valuesFile}}'
-      destination:
-        server: https://kubernetes.default.svc
-        namespace: '{{namespace}}'
-      syncPolicy:
-        syncOptions:
-          - CreateNamespace=true
-```
-
-### Generator Configuration
-
-The **List generator** defines an explicit list of parameter sets. Each element provides variables (`env`, `namespace`, `valuesFile`) that are interpolated into the template using `{{variable}}` syntax. This single ApplicationSet generates two Application resources: `python-app-dev` and `python-app-prod`.
-
-### Apply
-
-```bash
-kubectl apply -f k8s/argocd/applicationset.yaml
-argocd app list
-```
-
-**Screenshot — ApplicationSet generating both applications:**
-
-<!-- INSERT SCREENSHOT: ArgoCD UI or argocd app list showing apps generated by ApplicationSet -->
-`[screenshot: argocd-applicationset-apps.png]`
-
-### ApplicationSet vs Individual Applications
-
-| Aspect | Individual Applications | ApplicationSet |
-|--------|------------------------|---------------|
-| Maintenance | Edit each file separately | Single template |
-| Adding an environment | New YAML file | Add one list element |
-| Consistency | Manual, error-prone | Template guarantees consistency |
-| Scale | Grows linearly with envs | Constant effort |
-| Use case | Few, very different apps | Many similar envs or clusters |
-
-**When to use which generator:**
-
-- **List**: Explicit, small set of environments with known parameters
-- **Git directory**: Auto-discover apps from repo structure (mono-repo)
-- **Cluster**: Deploy same app to multiple clusters
-- **Matrix**: Cross-product of two generators (e.g., all apps × all clusters)
