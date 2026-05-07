@@ -1,0 +1,17 @@
+# Yandex Cloud Configuration
+# Copy this file to terraform.tfvars and fill in your values
+# IMPORTANT: terraform.tfvars should be in .gitignore!
+
+# Your Yandex Cloud folder ID
+folder_id = "your-folder-id-here"
+
+# Availability zone (default: ru-central1-a)
+zone = "ru-central1-a"
+
+# Ubuntu 22.04 LTS image ID (default provided, but you can change)
+# To find latest: yc compute image list --folder-id standard-images --name ubuntu-22-04
+image_id = "fd8kdq6d0p8sij7h5qe3"
+
+# SSH configuration
+ssh_user             = "ubuntu"
+ssh_public_key_path  = "~/.ssh/id_rsa.pub"
