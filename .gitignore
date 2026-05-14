@@ -1,1 +1,255 @@
-test
+# Python - app_python/
+app_python/__pycache__/
+app_python/*.py[cod]
+app_python/venv/
+app_python/env/
+app_python/*.log
+
+# Go - app_go/
+app_go/devops-info-service
+app_go/devops-info-service-*
+app_go/*.exe
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+*.retry
+.vault_pass
+ansible/inventory/*.pyc
+__pycache__/
+
+# ============================================
+# Python Testing & Coverage
+# ============================================
+
+# Coverage reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+.hypothesis/
+.benchmarks/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# Python build artifacts
+*.egg
+*.egg-info/
+dist/
+build/
+*.so
+*.dylib
+*.dll
+
+# ============================================
+# Terraform - Lab 04
+# ============================================
+
+# Terraform state files (содержат секреты!)
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+terraform/**/*.tfstate.backup
+terraform/**/.terraform.tfstate.lock.info
+
+# Terraform directory and lock file
+terraform/**/.terraform/
+terraform/**/.terraform.lock.hcl
+
+# Variable files with sensitive data (Cloud ID, Folder ID, etc.)
+terraform/**/terraform.tfvars
+terraform/**/*.tfvars
+terraform/**/*.auto.tfvars
+
+# Credentials and service account keys
+terraform/**/*.json
+terraform/**/authorized_key.json
+terraform/**/key.json
+terraform/**/service-account-key.json
+
+# Terraform crash logs
+terraform/**/crash.log
+terraform/**/crash.*.log
+
+# Override files
+terraform/**/override.tf
+terraform/**/override.tf.json
+terraform/**/*_override.tf
+terraform/**/*_override.tf.json
+
+# CLI configuration files
+terraform/**/.terraformrc
+terraform/**/terraform.rc
+
+# ============================================
+# Pulumi - Lab 04
+# ============================================
+
+# Pulumi virtual environment
+pulumi/**/venv/
+pulumi/**/.venv/
+pulumi/**/env/
+pulumi/**/ENV/
+
+# Pulumi stack configuration (может содержать секреты)
+pulumi/**/Pulumi.*.yaml
+pulumi/**/Pulumi.dev.yaml
+pulumi/**/Pulumi.prod.yaml
+
+# Python cache
+pulumi/**/*.pyc
+pulumi/**/__pycache__/
+pulumi/**/*.pyo
+pulumi/**/*.pyd
+
+# Pulumi plugins
+pulumi/**/.pulumi/
+
+# ============================================
+# Ansible
+# ============================================
+
+# Ansible retry files
+*.retry
+
+# Ansible vault password files
+.vault_pass
+.vault_password
+vault_pass.txt
+
+# Ansible facts cache
+*.fact
+
+# Ansible roles downloaded from Galaxy
+ansible/roles/external/
+
+# ============================================
+# Docker & Container Logs
+# ============================================
+
+# Docker Compose override files (могут содержать локальные настройки)
+docker-compose.override.yml
+docker-compose.*.override.yml
+
+# Container logs
+*.log
+
+# ============================================
+# SSH Keys (ВАЖНО!)
+# ============================================
+
+# Private SSH keys (НИКОГДА не коммитить!)
+**/*.pem
+**/*.key
+*.pem
+*.key
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# Исключение: публичные ключи можно коммитить
+!**/*.pub
+
+# ============================================
+# Cloud Credentials (ВАЖНО!)
+# ============================================
+
+# Yandex Cloud
+**/authorized_key.json
+**/key.json
+**/service-account-key.json
+
+# AWS
+**/.aws/credentials
+**/.aws/config
+
+# GCP
+**/gcp-key.json
+**/service-account.json
+
+# Azure
+**/.azure/
+
+# DigitalOcean
+**/.digitalocean/
+
+# ============================================
+# Monitoring & Logs
+# ============================================
+
+# Grafana
+monitoring/grafana/data/
+
+# Prometheus
+monitoring/prometheus/data/
+
+# Loki
+monitoring/loki/data/
+
+# Application logs
+logs/
+*.log
+
+# ============================================
+# GitHub Actions
+# ============================================
+
+# Local GitHub Actions runner
+.github/actions-runner/
+
+# ============================================
+# Дополнительно
+# ============================================
+
+# Backup files
+*.bak
+*.backup
+*~
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Node modules (если используется)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Certificates (ВАЖНО!)
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets directories
+secrets/
+.secrets/
